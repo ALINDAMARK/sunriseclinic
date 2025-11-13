@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -24,8 +25,10 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            // send users to the welcome landing after login
-            return redirect()->intended('/');
+            // flash a friendly welcome message including the user's name
+            $request->session()->flash('success', "Welcome " . Auth::user()->name . " — you're signed in");
+            // send users to the configured post-auth landing page
+            return redirect()->intended(config('auth_redirects.home', url('/')));
         }
 
         return back()->withErrors(['email' => 'The provided credentials do not match our records.'])->onlyInput('email');
@@ -49,10 +52,15 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+        // fire the Registered event so Laravel can send verification (if mail is configured)
+        event(new Registered($user));
 
-    Auth::login($user);
-    // after sign up, send the user to the welcome landing
-    return redirect('/');
+        // log the user in and flash a welcome message with their name
+        Auth::login($user);
+        $request->session()->flash('success', "Welcome " . $user->name . " — you're signed in");
+
+    // after sign up, redirect to the configured post-auth landing page
+    return redirect(config('auth_redirects.home', url('/')));
     }
 
     public function logout(Request $request)

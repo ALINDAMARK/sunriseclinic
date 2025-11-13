@@ -10,6 +10,9 @@
       <!-- Left / Hero (condensed to fit viewport) -->
       <div class="md:w-1/2 flex flex-col justify-center h-full">
         <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">Sun Rise Clinic</h1>
+  @auth
+  <div class="mt-2 text-sm text-green-700">Welcome, {{ auth()->user()->name }} — you're signed in</div>
+  @endauth
         <p class="mt-4 text-base md:text-lg text-slate-600 max-w-xl">Smart, simple scheduling and patient records built for small clinics. Fast booking, clear calendars, and organized patient history — everything you need to run daily operations without ambiguity.</p>
 
         <div class="mt-6 flex flex-wrap gap-3">

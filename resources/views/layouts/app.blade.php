@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Sun Rise Clinic')</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -45,8 +46,13 @@
             <div class="flex items-center gap-3 p-2">
               <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBZviud_nTyaAIGUCBfDhw2oyoL163dp3MEBZ0Utxx3r_8tA1Kl1RBXAf8KZ0uBXRl-wct___d4-WQMTyPELq7hqlP_Cw8q0LFBUH8zLFvNCI8dznnZpILrDJ_OI-q4W9XaPyzIFoSxS3VT8ojCk7hhzGpEaFtGBk5sJRClxmY8MyUBB_Vw_AVXGYXWNpoO0697DFDD16h7e5zfupYe8qvrYOJ4gqGHj813QNtVBfguiaJqx4o0HmyUYbTf4_qPaGFMpTQSZa0YFAxZ");'></div>
               <div class="flex flex-col">
-                <h1 class="text-[#121811] dark:text-white text-base font-medium leading-normal">Dr. Evelyn Reed</h1>
-                <p class="text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">Administrator</p>
+                @auth
+                  <h1 class="text-[#121811] dark:text-white text-base font-medium leading-normal">{{ auth()->user()->name }}</h1>
+                  <p class="text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">@if(auth()->user()->is_admin) Administrator @else Staff @endif</p>
+                @else
+                  <h1 class="text-[#121811] dark:text-white text-base font-medium leading-normal">Dr. Evelyn Reed</h1>
+                  <p class="text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">Administrator</p>
+                @endauth
               </div>
             </div>
             <nav class="flex flex-col gap-2 mt-4">
@@ -104,6 +110,18 @@
       <!-- Main Content -->
       <main class="flex-1 p-8">
         <div class="w-full max-w-7xl mx-auto">
+          {{-- flash messages (success / error) --}}
+          @if(session('success'))
+            <div class="mb-4 p-3 rounded bg-green-50 border border-green-200 text-green-800">
+              {{ session('success') }}
+            </div>
+          @endif
+          @if(session('error'))
+            <div class="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-800">
+              {{ session('error') }}
+            </div>
+          @endif
+
           @yield('content')
         </div>
       </main>

@@ -16,6 +16,14 @@ class Appointment extends Model
         'patient_id', 'doctor_id', 'service_id', 'starts_at', 'duration_minutes', 'status', 'notes',
     ];
 
+    /**
+     * Cast attributes to native types.
+     * Ensure starts_at is a Carbon instance so ->format() can be called.
+     */
+    protected $casts = [
+        'starts_at' => 'datetime',
+    ];
+
     public function patient()
     {
         return $this->belongsTo(Patient::class);

@@ -53,7 +53,7 @@
               </div>
               <div>
                 <label class="text-sm font-medium text-gray-600">Specific Service</label>
-                <select name="service_id" id="service" class="form-select w-full rounded-lg border px-3 py-2" onchange="document.getElementById('summary-service').innerText = this.options[this.selectedIndex].text; document.getElementById('summary-cost').innerText = this.options[this.selectedIndex].dataset.cost ? '$'+parseFloat(this.options[this.selectedIndex].dataset.cost).toFixed(2) : '-'">
+                <select name="service_id" id="service" class="form-select w-full rounded-lg border px-3 py-2" onchange="document.getElementById('summary-service').innerText = this.options[this.selectedIndex].text; document.getElementById('summary-cost').innerText = (function(c){ try{ if(!c) return '-'; return window.formatUGX ? window.formatUGX(c) : ('UGX '+Math.round(parseFloat(c))); }catch(e){ return '-'; } })(this.options[this.selectedIndex].dataset.cost)">
                   <option value="">Select a service</option>
                   @if(!empty($services))
                     @php $selectedService = request()->query('service') ?? old('service_id'); @endphp
@@ -187,6 +187,21 @@
 @push('scripts')
 <script>
   (function(){
+    // Format amount as Ugandan Shillings (UGX) — no fractional digits
+    window.formatUGX = function(amount){
+      try{
+        if(amount === null || typeof amount === 'undefined' || amount === '') return '-';
+        var n = Number(amount);
+        if(!isFinite(n)) return '-';
+        // UGX typically has no decimal subdivisions, show as integer with currency
+        try{
+          return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'UGX', maximumFractionDigits: 0 }).format(n);
+        }catch(e){
+          return 'UGX ' + Math.round(n).toString();
+        }
+      }catch(e){ return '-'; }
+    };
+
     function qs(id){ return document.getElementById(id); }
     var patientSelect = qs('patient-select');
     var serviceSelect = qs('service');
@@ -204,8 +219,8 @@
       if(serviceSelect){
         var sText = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].text : '';
         qs('summary-service').innerText = sText || '—';
-        var cost = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].dataset.cost : null;
-        qs('summary-cost').innerText = cost ? '$'+parseFloat(cost).toFixed(2) : '-';
+  var cost = serviceSelect.options[serviceSelect.selectedIndex] ? serviceSelect.options[serviceSelect.selectedIndex].dataset.cost : null;
+  qs('summary-cost').innerText = cost ? formatUGX(cost) : '-';
       }
       if(doctorSelect){
         var dText = doctorSelect.options[doctorSelect.selectedIndex] ? doctorSelect.options[doctorSelect.selectedIndex].text : '';

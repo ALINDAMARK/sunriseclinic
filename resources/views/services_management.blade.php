@@ -67,7 +67,7 @@
             <tr>
               <td class="h-[72px] px-4 py-2 text-[#121811] dark:text-white text-sm font-normal leading-normal">{{ $service->name }}</td>
               <td class="h-[72px] px-4 py-2 text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">{{ $service->duration_minutes ? $service->duration_minutes . ' min' : '-' }}</td>
-              <td class="h-[72px] px-4 py-2 text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">${{ number_format($service->cost, 2) }}</td>
+              <td class="h-[72px] px-4 py-2 text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">UGX {{ number_format($service->cost, 0) }}</td>
               <td class="h-[72px] px-4 py-2 text-[#698863] dark:text-gray-400 text-sm font-normal leading-normal">{{ $service->description }}</td>
               <td class="h-[72px] px-4 py-2 text-sm">
                 <div class="flex items-center gap-2">

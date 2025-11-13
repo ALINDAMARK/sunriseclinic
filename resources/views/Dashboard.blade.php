@@ -54,15 +54,15 @@
 <span class="material-symbols-outlined text-gray-900 dark:text-white">dashboard</span>
 <p class="text-gray-900 dark:text-white text-sm font-medium leading-normal">Dashboard</p>
 </a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="{{ route('appointments.manage') }}">
 <span class="material-symbols-outlined text-gray-700 dark:text-gray-300">calendar_month</span>
 <p class="text-gray-700 dark:text-gray-300 text-sm font-medium leading-normal">Calendar</p>
 </a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="{{ route('patients.manage') }}">
 <span class="material-symbols-outlined text-gray-700 dark:text-gray-300">groups</span>
 <p class="text-gray-700 dark:text-gray-300 text-sm font-medium leading-normal">Patients</p>
 </a>
-<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" href="{{ route('reports') }}">
 <span class="material-symbols-outlined text-gray-700 dark:text-gray-300">bar_chart</span>
 <p class="text-gray-700 dark:text-gray-300 text-sm font-medium leading-normal">Reports</p>
 </a>
@@ -113,14 +113,14 @@
 <p id="pending_arrivals" class="text-gray-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">{{ $pending_arrivals ?? 0 }}</p>
 </div>
 </div>
-<div class="flex gap-3 ml-4">
-<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-700">
-<span class="truncate">Add Patient</span>
-</button>
-<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90">
-<span class="truncate">New Appointment</span>
-</button>
-</div>
+        <div class="flex gap-3 ml-4">
+        <button id="open-add-patient" class="flex min-w-[84px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-gray-700">
+            <span class="truncate">Add Patient</span>
+        </button>
+        <button id="open-new-appointment" class="flex min-w-[84px] items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90">
+            <span class="truncate">New Appointment</span>
+        </button>
+    </div>
 </div>
 <!-- Today's Schedule -->
 <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
@@ -215,6 +215,85 @@
 </main>
 </div>
 </div>
+
+<!-- Modals -->
+<!-- Patient Modal -->
+<div id="patient-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40">
+    <div class="bg-white dark:bg-gray-900 rounded-lg w-full max-w-lg p-6">
+        <h3 class="text-lg font-semibold mb-4">Add Patient</h3>
+        <div id="patient-modal-errors" class="mb-3 text-sm text-red-700"></div>
+        <form id="patient-form">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm">Full name</label>
+                    <input name="name" class="w-full mt-1 rounded border px-3 py-2" required />
+                </div>
+                <div>
+                    <label class="block text-sm">Email</label>
+                    <input name="email" type="email" class="w-full mt-1 rounded border px-3 py-2" />
+                </div>
+                <div>
+                    <label class="block text-sm">Phone</label>
+                    <input name="phone" class="w-full mt-1 rounded border px-3 py-2" />
+                </div>
+                <div>
+                    <label class="block text-sm">Date of birth</label>
+                    <input name="dob" type="date" class="w-full mt-1 rounded border px-3 py-2" />
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" id="patient-cancel" class="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-primary text-black rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Appointment Modal -->
+<div id="appointment-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-black/40">
+    <div class="bg-white dark:bg-gray-900 rounded-lg w-full max-w-2xl p-6">
+        <h3 class="text-lg font-semibold mb-4">New Appointment</h3>
+        <div id="appointment-modal-errors" class="mb-3 text-sm text-red-700"></div>
+        <form id="appointment-form">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm">Patient</label>
+                    <select name="patient_id" id="appt-patient" class="w-full mt-1 rounded border px-3 py-2" required></select>
+                </div>
+                <div>
+                    <label class="block text-sm">Doctor</label>
+                    <select name="doctor_id" id="appt-doctor" class="w-full mt-1 rounded border px-3 py-2" required></select>
+                </div>
+                <div>
+                    <label class="block text-sm">Service</label>
+                    <select name="service_id" id="appt-service" class="w-full mt-1 rounded border px-3 py-2" required></select>
+                </div>
+                <div>
+                    <label class="block text-sm">Starts at</label>
+                    <input name="starts_at" id="appt-starts" type="datetime-local" class="w-full mt-1 rounded border px-3 py-2" required />
+                </div>
+                <div>
+                    <label class="block text-sm">Duration (minutes)</label>
+                    <input name="duration_minutes" type="number" class="w-full mt-1 rounded border px-3 py-2" />
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm">Notes</label>
+                    <textarea name="notes" class="w-full mt-1 rounded border px-3 py-2" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <button type="button" id="appointment-cancel" class="px-4 py-2 border rounded">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-primary text-black rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-black/80 text-white px-4 py-2 rounded">Saved</div>
+</div>
+
 <script>
     // Simple polling for dashboard summary and recent appointments (MVP)
     (function(){
@@ -238,9 +317,22 @@
                 container.innerHTML = '<div class="px-6 py-4 text-sm text-gray-500">No appointments for today.</div>';
                 return;
             }
-            const html = rows.map(r => `
+            // determine display preference (persisted in localStorage by schedule page)
+            const displayPref = (window.localStorage && window.localStorage.getItem('srcln-display-eat')) ? window.localStorage.getItem('srcln-display-eat') : 'EAT';
+
+            const fmtLocal = (iso) => {
+                try{
+                    if(!iso) return '';
+                    const d = new Date(iso);
+                    return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
+                }catch(e){ return iso || ''; }
+            };
+
+            const html = rows.map(r => {
+                const timeLabel = (displayPref === 'LOCAL') ? (r.starts_at ? fmtLocal(r.starts_at) : (r.time || '')) : (r.starts_at_eat_display || r.time || '');
+                return `
                 <div class="grid grid-cols-10 gap-4 px-6 py-4 items-center hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <div class="col-span-1 text-sm font-medium text-gray-900 dark:text-white">${r.time}</div>
+                    <div class="col-span-1 text-sm font-medium text-gray-900 dark:text-white">${timeLabel}</div>
                     <div class="col-span-3 flex items-center gap-3">
                         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" style="background-color:#eee;width:36px;height:36px;border-radius:9999px"></div>
                         <span class="text-sm font-medium text-gray-900 dark:text-white">${escapeHtml(r.patient)}</span>
@@ -250,11 +342,67 @@
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass(r.status)}">${escapeHtml(capitalize(r.status))}</span>
                     </div>
                     <div class="col-span-2 flex justify-end">
-                        <button class="p-1 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><span class="material-symbols-outlined">more_horiz</span></button>
+                        <button data-id="${r.id}" class="appointment-actions-btn p-1 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><span class="material-symbols-outlined">more_horiz</span></button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
             container.innerHTML = html;
+
+            // attach delegated click handler for action buttons — show a small popover menu
+            container.querySelectorAll('.appointment-actions-btn').forEach(btn => {
+                btn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const appointmentId = btn.getAttribute('data-id');
+                    if(!appointmentId) return;
+                    // create/populate popover
+                    let pop = document.getElementById('appointment-action-popover');
+                    if(!pop){
+                        pop = document.createElement('div');
+                        pop.id = 'appointment-action-popover';
+                        pop.className = 'z-50 bg-white dark:bg-gray-800 rounded shadow-md ring-1 ring-black/5 p-1';
+                        pop.style.position = 'absolute';
+                        pop.style.minWidth = '140px';
+                        pop.innerHTML = `
+                            <button data-action="checkin" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Check-in</button>
+                            <button data-action="cancel" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</button>
+                            <button data-action="delete" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700">Delete</button>
+                        `;
+                        document.body.appendChild(pop);
+
+                        // delegate clicks inside popover
+                        pop.addEventListener('click', async (e) => {
+                            const actionBtn = e.target.closest('button[data-action]');
+                            if(!actionBtn) return;
+                            const action = actionBtn.getAttribute('data-action');
+                            // perform action and hide popover
+                            await performAction(appointmentId, action);
+                            hidePopover();
+                        });
+                    }
+
+                    // position the popover next to the clicked button
+                    const rect = btn.getBoundingClientRect();
+                    const top = rect.top + window.scrollY + rect.height + 6; // below the button
+                    let left = rect.left + window.scrollX - 10;
+                    // ensure it's within viewport
+                    const maxLeft = window.innerWidth - 180;
+                    if(left > maxLeft) left = maxLeft;
+                    pop.style.top = top + 'px';
+                    pop.style.left = left + 'px';
+                    pop.style.display = 'block';
+
+                    // close on outside click
+                    setTimeout(() => {
+                        const onDoc = (ev2) => {
+                            if(!pop.contains(ev2.target) && ev2.target !== btn) hidePopover();
+                        };
+                        document.addEventListener('click', onDoc, { once: true });
+                        function hidePopover(){
+                            pop.style.display = 'none';
+                        }
+                    }, 0);
+                });
+            });
         }
 
         function statusClass(status){
@@ -272,10 +420,146 @@
 
         async function poll(){
             try{
-                const [sRes, rRes] = await Promise.all([fetch(summaryUrl, {credentials: 'same-origin'}), fetch(recentUrl, {credentials: 'same-origin'})]);
+                const [sRes, rRes] = await Promise.all([
+                    fetch(summaryUrl, {credentials: 'same-origin'}),
+                    fetch(recentUrl, {credentials: 'same-origin'})
+                ]);
                 if(sRes.ok){ const s = await sRes.json(); updateSummary(s); }
                 if(rRes.ok){ const j = await rRes.json(); renderRows(j.data || []); }
             }catch(e){ console.error('Dashboard poll error', e); }
+        }
+
+        async function performAction(appointmentId, action){
+            try{
+                const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                const token = tokenMeta ? tokenMeta.getAttribute('content') : null;
+                const res = await fetch(`/api/appointments/${appointmentId}/action`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({ action })
+                });
+                if(!res.ok){
+                    const err = await res.text();
+                    alert('Action failed: ' + err);
+                    return;
+                }
+                const j = await res.json();
+                // refresh summary and rows
+                await poll();
+                if(j && j.message) alert(j.message);
+            }catch(e){ console.error('performAction error', e); alert('Action error'); }
+        }
+
+        // --- Modal & AJAX create handlers ---
+        const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+
+        function showElement(el){ if(!el) return; el.classList.remove('hidden'); el.classList.add('flex'); }
+        function hideElement(el){ if(!el) return; el.classList.add('hidden'); el.classList.remove('flex'); }
+
+        // open patient modal
+        const openPatientBtn = document.getElementById('open-add-patient');
+        const patientModal = document.getElementById('patient-modal');
+        const patientForm = document.getElementById('patient-form');
+        const patientErrors = document.getElementById('patient-modal-errors');
+
+        openPatientBtn && openPatientBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            patientForm.reset();
+            patientErrors.innerHTML = '';
+            showElement(patientModal);
+        });
+        document.getElementById('patient-cancel')?.addEventListener('click', () => hideElement(patientModal));
+
+        patientForm && patientForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            patientErrors.innerHTML = '';
+            const formData = new FormData(patientForm);
+            const payload = {};
+            formData.forEach((v,k)=> payload[k]=v);
+            try{
+                const res = await fetch('/patients', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if(res.status === 201){
+                    const j = await res.json();
+                    hideElement(patientModal);
+                    showToast(j.message || 'Patient created');
+                    await poll();
+                } else if(res.status === 422){
+                    const j = await res.json();
+                    const errors = j.errors || {};
+                    patientErrors.innerHTML = Object.values(errors).map(arr => '<div>'+escapeHtml(arr.join(', '))+'</div>').join('');
+                } else {
+                    const txt = await res.text();
+                    patientErrors.innerHTML = '<div>'+escapeHtml(txt)+'</div>';
+                }
+            }catch(err){ console.error(err); patientErrors.innerHTML = '<div>Network error</div>'; }
+        });
+
+        // appointment modal handlers
+        const openApptBtn = document.getElementById('open-new-appointment');
+        const apptModal = document.getElementById('appointment-modal');
+        const apptForm = document.getElementById('appointment-form');
+        const apptErrors = document.getElementById('appointment-modal-errors');
+
+        openApptBtn && openApptBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            apptErrors.innerHTML = '';
+            apptForm.reset();
+            showElement(apptModal);
+            // populate selects
+            try{
+                const [pRes, dRes, sRes] = await Promise.all([
+                    fetch('/patients-list', {credentials: 'same-origin'}),
+                    fetch('/doctors', {credentials: 'same-origin'}),
+                    fetch('/services-list', {credentials: 'same-origin'})
+                ]);
+                const [pJson, dJson, sJson] = await Promise.all([pRes.json(), dRes.json(), sRes.json()]);
+                const pSel = document.getElementById('appt-patient'); pSel.innerHTML = '';
+                pJson.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.text = p.name; pSel.appendChild(o); });
+                const dSel = document.getElementById('appt-doctor'); dSel.innerHTML = '';
+                dJson.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.text = d.name; dSel.appendChild(o); });
+                const sSel = document.getElementById('appt-service'); sSel.innerHTML = '';
+                sJson.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.text = s.name; sSel.appendChild(o); });
+            }catch(err){ console.error('populate selects error', err); }
+        });
+        document.getElementById('appointment-cancel')?.addEventListener('click', () => hideElement(apptModal));
+
+        apptForm && apptForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            apptErrors.innerHTML = '';
+            const formData = new FormData(apptForm); const payload = {}; formData.forEach((v,k)=> payload[k]=v);
+            try{
+                const res = await fetch('/appointments', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if(res.status === 201){ const j = await res.json(); hideElement(apptModal); showToast(j.message || 'Appointment created'); await poll(); }
+                else if(res.status === 422){ const j = await res.json(); const errors = j.errors||{}; apptErrors.innerHTML = Object.values(errors).map(arr=>'<div>'+escapeHtml(arr.join(', '))+'</div>').join(''); }
+                else { const txt = await res.text(); apptErrors.innerHTML = '<div>'+escapeHtml(txt)+'</div>'; }
+            }catch(err){ console.error(err); apptErrors.innerHTML = '<div>Network error</div>'; }
+        });
+
+        // toast
+        function showToast(message, ms=2200){
+            const t = document.getElementById('toast'); if(!t) return; t.firstElementChild.textContent = message || 'Saved'; t.classList.remove('hidden'); setTimeout(()=> t.classList.add('hidden'), ms);
         }
 
         // initial poll and interval

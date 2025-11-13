@@ -40,6 +40,13 @@ class ServiceController extends Controller
         return response()->json($service);
     }
 
+    // JSON list for AJAX selects
+    public function list()
+    {
+        $services = Service::orderBy('name')->get();
+        return response()->json($services);
+    }
+
     public function edit(Service $service)
     {
         // If the request asks for a modal partial, return only the form fragment

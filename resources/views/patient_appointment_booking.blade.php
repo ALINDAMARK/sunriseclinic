@@ -158,7 +158,34 @@
 <!-- Sidebar: Booking Summary -->
 <aside class="lg:col-span-1">
 <div class="sticky top-28 p-6 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark shadow-lg space-y-6">
-<h3 class="text-xl font-bold text-text-light dark:text-text-dark">Booking Summary</h3>
+            <!-- Mini Month Calendar -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <button id="mini-prev" class="px-2 py-1 rounded-md border border-border-light dark:border-border-dark">◀</button>
+                    <div id="mini-month-label" class="font-semibold"></div>
+                    <button id="mini-next" class="px-2 py-1 rounded-md border border-border-light dark:border-border-dark">▶</button>
+                </div>
+                <div id="mini-month-grid" class="grid grid-cols-7 gap-1 text-sm"></div>
+            </div>
+
+            <?php
+                $doctorsList = \Illuminate\Support\Facades\Schema::hasTable('doctors') ? \App\Models\Doctor::orderBy('name')->get() : collect();
+            ?>
+
+            <div class="space-y-3">
+                <label class="block text-sm text-text-light/70">Doctor</label>
+                <select id="booking-doctor-select" class="w-full rounded-md border border-border-light dark:border-border-dark p-2 bg-card-light dark:bg-card-dark">
+                    <option value="">Select a doctor</option>
+                    @foreach($doctorsList as $doc)
+                        <option value="{{ $doc->id }}">{{ $doc->name }}</option>
+                    @endforeach
+                </select>
+
+                <label class="block text-sm text-text-light/70">Time</label>
+                <input id="booking-time" type="time" class="w-full rounded-md border border-border-light dark:border-border-dark p-2 bg-card-light dark:bg-card-dark" value="09:00">
+            </div>
+
+            <h3 class="text-xl font-bold text-text-light dark:text-text-dark">Booking Summary</h3>
 <div class="space-y-4 text-sm">
 <div class="flex justify-between items-center">
 <span class="text-text-light/70 dark:text-text-dark/70">Service</span>
@@ -166,11 +193,11 @@
 </div>
 <div class="flex justify-between items-center">
 <span class="text-text-light/70 dark:text-text-dark/70">Doctor</span>
-<span class="text-text-light/50 dark:text-text-dark/50 italic">Not selected</span>
+<span id="booking-doctor" class="text-text-light/50 dark:text-text-dark/50 italic">Not selected</span>
 </div>
 <div class="flex justify-between items-center">
 <span class="text-text-light/70 dark:text-text-dark/70">Date &amp; Time</span>
-<span class="text-text-light/50 dark:text-text-dark/50 italic">Not selected</span>
+<span id="booking-date" class="text-text-light/50 dark:text-text-dark/50 italic">Not selected</span>
 </div>
 </div>
 <div class="border-t border-border-light dark:border-border-dark pt-4">
@@ -192,4 +219,147 @@
 </div>
 </main>
 </div>
+
+<script>
+    (function(){
+        // Small calendar widget for selecting a day and updating the Booking Summary
+        function ymd(d){
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            const dd = String(d.getDate()).padStart(2,'0');
+            return yyyy+"-"+mm+"-"+dd;
+        }
+
+        function formatDisplay(d){
+            return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        document.addEventListener('DOMContentLoaded', function(){
+            const grid = document.getElementById('mini-month-grid');
+            const label = document.getElementById('mini-month-label');
+            const prev = document.getElementById('mini-prev');
+            const next = document.getElementById('mini-next');
+            const bookingDateEl = document.getElementById('booking-date');
+            const bookingDoctorEl = document.getElementById('booking-doctor');
+            const doctorSelect = document.getElementById('booking-doctor-select');
+            const timeInput = document.getElementById('booking-time');
+
+            if(!grid || !label || !prev || !next) return;
+
+            // state
+            window.__CALENDAR_CURRENT_VIEW = window.__CALENDAR_CURRENT_VIEW || new Date();
+            const viewDate = new Date(window.__CALENDAR_CURRENT_VIEW.getFullYear(), window.__CALENDAR_CURRENT_VIEW.getMonth(), 1);
+            window.__CALENDAR_CURRENT_VIEW = viewDate;
+
+            window.__CALENDAR_FOCUSED_DATE = window.__CALENDAR_FOCUSED_DATE || ymd(new Date());
+
+            function updateBookingDisplay(){
+                if(!bookingDateEl) return;
+                const dateIso = window.__CALENDAR_FOCUSED_DATE;
+                if(!dateIso){
+                    bookingDateEl.textContent = 'Not selected';
+                    bookingDateEl.classList.add('italic','text-text-light/50','dark:text-text-dark/50');
+                    return;
+                }
+                const timeVal = (timeInput && timeInput.value) ? timeInput.value : '09:00';
+                // create a local Date object
+                const sel = new Date(dateIso + 'T' + timeVal);
+                bookingDateEl.textContent = formatDisplay(sel) + ' at ' + timeVal;
+                bookingDateEl.classList.remove('italic','text-text-light/50','dark:text-text-dark/50');
+            }
+
+            function render(){
+                const year = window.__CALENDAR_CURRENT_VIEW.getFullYear();
+                const month = window.__CALENDAR_CURRENT_VIEW.getMonth();
+                label.textContent = window.__CALENDAR_CURRENT_VIEW.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+
+                // clear
+                grid.innerHTML = '';
+
+                // weekday headers
+                const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                weekdays.forEach(w => {
+                    const el = document.createElement('div');
+                    el.className = 'text-center text-xs text-text-light/60 dark:text-text-dark/60';
+                    el.textContent = w;
+                    grid.appendChild(el);
+                });
+
+                // first day of month
+                const first = new Date(year, month, 1);
+                const last = new Date(year, month+1, 0);
+                const leading = first.getDay();
+
+                // leading blanks
+                for(let i=0;i<leading;i++){
+                    const blank = document.createElement('div');
+                    grid.appendChild(blank);
+                }
+
+                for(let d=1; d<= last.getDate(); d++){
+                    const dt = new Date(year, month, d);
+                    const iso = ymd(dt);
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.dataset.iso = iso;
+                    btn.className = 'p-2 text-center rounded-md hover:bg-primary/10 transition-colors';
+                    btn.textContent = d;
+
+                    if(window.__CALENDAR_FOCUSED_DATE === iso){
+                        btn.classList.add('bg-primary','text-white','font-semibold');
+                    }
+
+                    btn.addEventListener('click', function(e){
+                        const isoDate = this.dataset.iso;
+                        window.__CALENDAR_FOCUSED_DATE = isoDate;
+                        // emit event so other components can react
+                        document.dispatchEvent(new CustomEvent('calendar:dayselected', { detail: { date: isoDate } }));
+                        // re-render to show selection
+                        render();
+                        // update booking summary using selected time
+                        updateBookingDisplay();
+                    });
+
+                    grid.appendChild(btn);
+                }
+            }
+
+            prev.addEventListener('click', function(){
+                window.__CALENDAR_CURRENT_VIEW = new Date(window.__CALENDAR_CURRENT_VIEW.getFullYear(), window.__CALENDAR_CURRENT_VIEW.getMonth()-1, 1);
+                render();
+            });
+            next.addEventListener('click', function(){
+                window.__CALENDAR_CURRENT_VIEW = new Date(window.__CALENDAR_CURRENT_VIEW.getFullYear(), window.__CALENDAR_CURRENT_VIEW.getMonth()+1, 1);
+                render();
+            });
+
+            // initial booking date if focused
+            updateBookingDisplay();
+
+            // doctor select wiring
+            if(doctorSelect && bookingDoctorEl){
+                doctorSelect.addEventListener('change', function(){
+                    const opt = this.options[this.selectedIndex];
+                    if(!this.value){
+                        bookingDoctorEl.textContent = 'Not selected';
+                        bookingDoctorEl.classList.add('italic','text-text-light/50','dark:text-text-dark/50');
+                    } else {
+                        bookingDoctorEl.textContent = opt.textContent || opt.innerText;
+                        bookingDoctorEl.classList.remove('italic','text-text-light/50','dark:text-text-dark/50');
+                    }
+                });
+            }
+
+            // time input wiring
+            if(timeInput){
+                timeInput.addEventListener('change', function(){
+                    updateBookingDisplay();
+                });
+            }
+
+            render();
+        });
+    })();
+</script>
+
 </body></html>
